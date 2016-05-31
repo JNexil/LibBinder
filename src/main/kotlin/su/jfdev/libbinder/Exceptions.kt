@@ -10,4 +10,4 @@ open class BindException: RuntimeException {
 }
 
 class MissingBindException(alias: String): BindException("Bind [$alias] is not exist")
-class IllegalFormatBindException(alias: String): BindException("Format for [$alias] is unreadable")
+class IllegalFormatBindException(message: String): BindException(message)

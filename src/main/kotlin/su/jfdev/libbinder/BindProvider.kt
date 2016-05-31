@@ -16,15 +16,15 @@ data class BindProvider(val givenProperties: Map<String, String>) {
     fun sources(groupAlias: String): Collection<Source> = groupOrSingle(groupAlias) { source(it) }
 
     inline fun <R> groupOrSingle(groupAlias: String, crossinline aliasToR: (String) -> R): Collection<R> = try {
-        listOf(aliasToR(groupAlias))
-    } catch(e: MissingBindException) {
         group(groupAlias, aliasToR)
+    } catch(e: BindException) {
+        listOf(aliasToR(groupAlias))
     }
 
     inline fun <R> group(groupAlias: String, crossinline aliasToR: (String) -> R): Collection<R> {
         val evalText = item(groupAlias) + " as String[]"
         val arrayItem: Array<*> = Eval.me(evalText) as? Array<*>
-                ?: throw IllegalArgumentException("item [$groupAlias] should be array in groovy-like style")
+                ?: throw IllegalFormatBindException("item [$groupAlias] should be array in groovy-like style")
         return arrayItem.map {
             aliasToR(it.toString())
         }
@@ -32,7 +32,7 @@ data class BindProvider(val givenProperties: Map<String, String>) {
 
     fun library(alias: String): Library = try {
         Library.from(item(alias))
-    } catch(e: MissingBindException) {
+    } catch(e: BindException) {
         LibraryBuilder().make(alias)
     }
 

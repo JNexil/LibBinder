@@ -1,5 +1,6 @@
 package su.jfdev.libbinder.items
 
+import su.jfdev.libbinder.IllegalFormatBindException
 import su.jfdev.libbinder.nullIfEmpty
 
 data class Library(val group: String, val name: String, val version: String, val classifier: String?, val extension: String?) {
@@ -23,6 +24,7 @@ data class Library(val group: String, val name: String, val version: String, val
             val withoutExtension = id.substringBefore("@")
             val extension = id.substringAfter("@", "").nullIfEmpty()
             val otherParts = withoutExtension.split(':')
+            if (otherParts.size < 3) throw IllegalFormatBindException("Format of bind declaration is unreadable")
             val (group, name, version) = otherParts
             val classifier = otherParts.getOrNull(3)
             return Library(group, name, version, classifier, extension)
@@ -32,6 +34,6 @@ data class Library(val group: String, val name: String, val version: String, val
                 = Library(map("group"), map("name"), map("version"), map["classifier"], map["extension"])
 
         private operator fun Map<String, String>.invoke(key: String) = this[key]
-                ?: throw IllegalArgumentException("Parameter $key is required")
+                ?: throw IllegalFormatBindException("Parameter $key is required")
     }
 }

@@ -30,7 +30,7 @@ object ANY_SRC {
     const val URL = ANY_URL
     const val USERNAME = "ANY_USERNAME"
     const val PASSWORD = "pass"
-    val SOURCE = Source(URL, USERNAME, PASSWORD)
+    val SOURCE = Source(URL, USERNAME, PASSWORD, null)
 
     fun beanPairs() = arrayOf("bean.url" to URL,
                               "bean.username" to USERNAME,
