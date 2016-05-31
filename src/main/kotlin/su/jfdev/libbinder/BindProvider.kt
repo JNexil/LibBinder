@@ -1,6 +1,7 @@
 package su.jfdev.libbinder
 
-import groovy.util.Eval
+import com.google.gson.Gson
+import com.google.gson.JsonSyntaxException
 import su.jfdev.libbinder.builder.Builder
 import su.jfdev.libbinder.builder.Builder.FailedException
 import su.jfdev.libbinder.builder.LibraryBuilder
@@ -22,9 +23,12 @@ data class BindProvider(val givenProperties: Map<String, String>) {
     }
 
     inline fun <R> group(groupAlias: String, crossinline aliasToR: (String) -> R): Collection<R> {
-        val evalText = item(groupAlias) + " as String[]"
-        val arrayItem: Array<*> = Eval.me(evalText) as? Array<*>
-                ?: throw IllegalFormatBindException("item [$groupAlias] should be array in groovy-like style")
+        val evalText = item(groupAlias)
+        val arrayItem: Array<*> = try {
+            Gson().fromJson(evalText, Array<String>::class.java)
+        } catch(e: JsonSyntaxException) {
+            throw IllegalFormatBindException("Item [$groupAlias] should be array in groovy-like style")
+        }
         return arrayItem.map {
             aliasToR(it.toString())
         }
