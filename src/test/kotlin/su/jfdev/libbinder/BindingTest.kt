@@ -76,6 +76,15 @@ class BindingTest {
         assertEquals(fromDirectFile, fromFilePath)
     }
 
+    @Test fun `is valid provider from short filepath`() {
+        val file = File("tempfileblablabla.prop")
+        file.createNewFile()
+        val fromDirectFile = Binding[file]
+        val fromFilePath = Binding.file("temp")
+        assertEquals(fromDirectFile, fromFilePath)
+        file.delete()
+    }
+
     @Test fun `is valid provider from GroovyObject`() = validate {
         val script: GroovyObject = GroovyShell().parse("alias = '$ANY_ID'").apply { run() }
         Binding[script, "alias"]

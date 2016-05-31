@@ -39,7 +39,7 @@ object Binding {
 
     private fun detect(file: File?): File? {
         if (file == null || file.exists()) return file
-        val parent = detect(file.parentFile)
+        val parent = detect(file.absoluteFile.parentFile)
         parent?.list()?.forEach {
             if (it.startsWith(file.name)) return parent.resolve(it)
         }
