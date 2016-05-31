@@ -9,10 +9,17 @@ import su.jfdev.libbinder.items.Library
 import su.jfdev.libbinder.items.Source
 import kotlin.reflect.primaryConstructor
 
-class BindProvider(val givenProperties: Map<String, String>) {
+data class BindProvider(val givenProperties: Map<String, String>) {
 
-    fun libraries(groupAlias: String): Collection<Library> = group(groupAlias) { library(it) }
-    fun sources(groupAlias: String): Collection<Source> = group(groupAlias) { source(it) }
+    fun libraries(groupAlias: String): Collection<Library> = groupOrSingle(groupAlias) { library(it) }
+
+    fun sources(groupAlias: String): Collection<Source> = groupOrSingle(groupAlias) { source(it) }
+
+    inline fun <R> groupOrSingle(groupAlias: String, crossinline aliasToR: (String) -> R): Collection<R> = try {
+        listOf(aliasToR(groupAlias))
+    } catch(e: MissingBindException) {
+        group(groupAlias, aliasToR)
+    }
 
     inline fun <R> group(groupAlias: String, crossinline aliasToR: (String) -> R): Collection<R> {
         val evalText = item(groupAlias) + " as String[]"
@@ -61,4 +68,6 @@ class BindProvider(val givenProperties: Map<String, String>) {
             throw FailedException(alias, builder, any)
         }
     }
+
+
 }

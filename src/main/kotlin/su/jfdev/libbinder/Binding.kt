@@ -3,6 +3,7 @@ package su.jfdev.libbinder
 import groovy.lang.GroovyObject
 import groovy.util.ConfigObject
 import java.io.File
+import java.io.FileNotFoundException
 import java.io.IOException
 import java.net.URL
 import java.util.*
@@ -29,6 +30,20 @@ object Binding {
     fun get(url: URL): BindProvider {
         val extension = url.file.substringAfterLast('.', "")
         return get(url, ParsingWay[extension])
+    }
+
+    fun file(path: String): BindProvider {
+        val file = detect(File(path)) ?: throw FileNotFoundException()
+        return get(file)
+    }
+
+    private fun detect(file: File?): File? {
+        if (file == null || file.exists()) return file
+        val parent = detect(file.parentFile)
+        parent?.list()?.forEach {
+            if (it.startsWith(file.name)) return parent.resolve(it)
+        }
+        return null
     }
 
     @JvmStatic @JvmName("parse") operator

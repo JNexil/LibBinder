@@ -5,6 +5,7 @@ import groovy.lang.GroovyShell
 import org.junit.Test
 import su.jfdev.libbinder.ParsingWay.UnknownExtensionException
 import java.io.File
+import kotlin.test.assertEquals
 import kotlin.test.expect
 
 /**
@@ -65,6 +66,14 @@ class BindingTest {
     fun `if autodetect is impossible, throw exception`() = validate {
         val file = tempFile("testAutoDetect", "alias=$ANY_ID")
         Binding[file]
+    }
+
+    @Test fun `is valid provider from full filepath`() {
+        val file = File("tempfileblablabla.prop")
+        file.createNewFile()
+        val fromDirectFile = Binding[file]
+        val fromFilePath = Binding.file("tempfileblablabla.prop")
+        assertEquals(fromDirectFile, fromFilePath)
     }
 
     @Test fun `is valid provider from GroovyObject`() = validate {
