@@ -2,22 +2,27 @@ package su.jfdev.libbinder.items
 
 import su.jfdev.libbinder.IllegalFormatBindException
 import su.jfdev.libbinder.nullIfEmpty
+import su.jfdev.libbinder.util.mapOfNotNull
+import su.jfdev.libbinder.util.nullable
 
-data class Library(val group: String, val name: String, val version: String, val classifier: String?, val extension: String?) {
+data class Library(val map: Map<String, String>) {
+
+    constructor(group: String, name: String, version: String, classifier: String?, extension: String?)
+    : this(mapOfNotNull("group" to group, "name" to name, "version" to version, "classifier" to classifier,
+                        "extension" to extension))
+
+    private val nullableAccess = map.nullable()
+    val group: String by map
+    val name: String by map
+    val version: String by map
+    val classifier: String? by nullableAccess
+    val extension: String? by nullableAccess
+
     val id: String get() = buildString {
         append("$group:$name:$version")
         if (classifier != null) append(":$classifier")
         if (extension != null) append("@$extension")
     }
-
-    val map: Map<String, String> get() = mapOf("group" to group,
-                                               "name" to name,
-                                               "version" to version,
-                                               "classifier" to classifier,
-                                               "extension" to extension).mapNotNull {
-        if (it.value == null) null
-        else it.key to it.value!!
-    }.toMap()
 
     companion object {
         fun from(id: String): Library {
@@ -30,10 +35,6 @@ data class Library(val group: String, val name: String, val version: String, val
             return Library(group, name, version, classifier, extension)
         }
 
-        fun from(map: Map<String, String>): Library
-                = Library(map("group"), map("name"), map("version"), map["classifier"], map["extension"])
-
-        private operator fun Map<String, String>.invoke(key: String) = this[key]
-                ?: throw IllegalFormatBindException("Parameter $key is required")
+        @Suppress("NOTHING_TO_INLINE") inline fun from(map: Map<String, String>) = Library(map)
     }
 }
