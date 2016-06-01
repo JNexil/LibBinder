@@ -35,6 +35,6 @@ data class Library(val map: Map<String, String>) {
             return Library(group, name, version, classifier, extension)
         }
 
-        @Suppress("NOTHING_TO_INLINE") inline fun from(map: Map<String, String>) = Library(map)
+        @Suppress("NOTHING_TO_INLINE", "unused") inline fun from(map: Map<String, String>) = Library(map)
     }
 }
