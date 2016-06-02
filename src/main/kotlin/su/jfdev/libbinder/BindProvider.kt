@@ -2,13 +2,9 @@ package su.jfdev.libbinder
 
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
-import su.jfdev.libbinder.builder.Builder
-import su.jfdev.libbinder.builder.Builder.FailedException
-import su.jfdev.libbinder.builder.LibraryBuilder
-import su.jfdev.libbinder.builder.builder
 import su.jfdev.libbinder.items.Library
 import su.jfdev.libbinder.items.Source
-import kotlin.reflect.primaryConstructor
+import su.jfdev.libbinder.util.checkProperties
 
 data class BindProvider(val givenProperties: Map<String, String>) {
 
@@ -16,13 +12,13 @@ data class BindProvider(val givenProperties: Map<String, String>) {
 
     fun sources(groupAlias: String): Collection<Source> = groupOrSingle(groupAlias) { source(it) }
 
-    inline fun <R> groupOrSingle(groupAlias: String, crossinline aliasToR: (String) -> R): Collection<R> = try {
-        group(groupAlias, aliasToR)
+    inline fun <R> groupOrSingle(groupAlias: String, crossinline fromAlias: (String) -> R): Collection<R> = try {
+        group(groupAlias, fromAlias)
     } catch(e: BindException) {
-        listOf(aliasToR(groupAlias))
+        listOf(fromAlias(groupAlias))
     }
 
-    inline fun <R> group(groupAlias: String, crossinline aliasToR: (String) -> R): Collection<R> {
+    inline fun <R> group(groupAlias: String, crossinline fromAlias: (String) -> R): Collection<R> {
         val evalText = item(groupAlias)
         val arrayItem: Array<*> = try {
             Gson().fromJson(evalText, Array<String>::class.java)
@@ -30,20 +26,20 @@ data class BindProvider(val givenProperties: Map<String, String>) {
             throw IllegalFormatBindException("Item [$groupAlias] should be array in groovy-like style")
         }
         return arrayItem.map {
-            aliasToR(it.toString())
+            fromAlias(it.toString())
         }
     }
 
     fun library(alias: String): Library = try {
         Library.from(item(alias))
     } catch(e: BindException) {
-        LibraryBuilder().make(alias)
+        make(alias) { Library(it) }
     }
 
     fun source(alias: String): Source = try {
         Source(item(alias))
     } catch(e: MissingBindException) {
-        Source::class.primaryConstructor!!.builder.make(alias)
+        make(alias) { Source(it) }
     }
 
     fun item(alias: String) = givenProperties[alias] ?: throw MissingBindException(alias)
@@ -60,16 +56,12 @@ data class BindProvider(val givenProperties: Map<String, String>) {
         return properties.toMap()
     }
 
-    fun <T> Builder<T>.make(alias: String): T = build(this, alias)
-
-    fun <T> build(builder: Builder<T>, alias: String): T {
-        properties(alias).forEach { declared ->
-            builder.properties += declared.toPair()
-        }
+    inline fun <T: Any> make(alias: String, factory: (Map<String, String>) -> T): T {
+        val properties = properties(alias)
         return try {
-            builder.build()
+            factory(properties).checkProperties()
         } catch(any: Exception) {
-            throw FailedException(alias, builder, any)
+            throw IllegalFormatBindException(alias)
         }
     }
 

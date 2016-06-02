@@ -1,22 +1,21 @@
 package su.jfdev.libbinder.items
 
 import su.jfdev.libbinder.IllegalFormatBindException
-import su.jfdev.libbinder.nullIfEmpty
 import su.jfdev.libbinder.util.mapOfNotNull
+import su.jfdev.libbinder.util.nullIfEmpty
 import su.jfdev.libbinder.util.nullable
 
-data class Library(val map: Map<String, String>) {
+data class Library(val properties: Map<String, String>) {
 
     constructor(group: String, name: String, version: String, classifier: String?, extension: String?)
     : this(mapOfNotNull("group" to group, "name" to name, "version" to version, "classifier" to classifier,
                         "extension" to extension))
 
-    private val nullableAccess = map.nullable()
-    val group: String by map
-    val name: String by map
-    val version: String by map
-    val classifier: String? by nullableAccess
-    val extension: String? by nullableAccess
+    val group: String by properties
+    val name: String by properties
+    val version: String by properties
+    val classifier: String? by properties.nullable()
+    val extension: String? by properties.nullable()
 
     val id: String get() = buildString {
         append("$group:$name:$version")

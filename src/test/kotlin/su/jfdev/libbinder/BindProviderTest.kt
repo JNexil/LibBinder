@@ -3,8 +3,6 @@ package su.jfdev.libbinder
 import org.junit.Test
 import su.jfdev.libbinder.ANY_LIB.LIBRARY
 import su.jfdev.libbinder.ANY_SRC.SOURCE
-import su.jfdev.libbinder.builder.Builder
-import su.jfdev.libbinder.builder.LibraryBuilder
 import su.jfdev.libbinder.items.Library
 import su.jfdev.libbinder.items.Source
 import kotlin.test.assertFailsWith
@@ -39,7 +37,7 @@ class BindProviderTest {
     }
 
     @Test fun `is valid library from props`() = LIBRARY.expectWith(*ANY_LIB.beanPairs()) { provider ->
-        provider.build(LibraryBuilder(), "bean")
+        provider.library("bean")
     }
 
     @Test fun `is valid source from url`() = ANY_URL.expectWith("src" to ANY_URL) { provider ->
@@ -79,8 +77,8 @@ class BindProviderTest {
     }
 
     @Test fun `if bean building is failed, throw exception`() = withProvider("fail.unknownProperty" to "anyValue") {
-        assertFailsWith<Builder.FailedException> {
-            it.build(LibraryBuilder(), "fail")
+        assertFailsWith<IllegalFormatBindException> {
+            it.library("fail")
         }
     }
 
